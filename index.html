@@ -4,16 +4,13 @@
   <title>State Frequencies</title>
  
 </head>
+<link rel="stylesheet" href="style.css">
 <body>
   <h1>State Frequencies</h1>
   <div id="stateFrequencies"></div>
   
   <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!--
-************* Copyright (c) 2017 Pareto Softare, LLC DBA Simplemaps.com *******************		
-************* Free for Commercial Use, full terms at  http://simplemaps.com/resources/svg-license ************
-************* Attribution is appreciated! http://simplemaps.com ***************************
--->
+
 
 <svg
    xmlns:dc="http://purl.org/dc/elements/1.1/"
@@ -450,29 +447,88 @@
 </svg>
 
 
-  <script>
+<script>
+  const apiUrl = 'https://script.google.com/macros/s/AKfycbyhAMSI6lXtlWJpf8EDznwFumFyJb-HurRrS_P5aDhWJ5M574VSggtZ4miZK1oME-Yh_Q/exec';
+  const paths = document.querySelectorAll('path');
+  
+  const customIconUrl = 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/Map_pin_icon.svg/352px-Map_pin_icon.svg.png';
+  
+  // Function to create pins based on state frequencies
+  // Function to create pins based on state frequencies
+// Function to create pins based on state frequencies
+function createPins(data) {
+  paths.forEach(path => {
+    const dataName = path.getAttribute('data-name');
+    const matchingItem = data.find(item => item.statename === dataName);
 
-const apiUrl = 'https://script.google.com/macros/s/AKfycbyhAMSI6lXtlWJpf8EDznwFumFyJb-HurRrS_P5aDhWJ5M574VSggtZ4miZK1oME-Yh_Q/exec';
-const paths = document.querySelectorAll('path');
+    if (matchingItem) {
+      const frequency = matchingItem.frequency;
+      const bbox = path.getBBox();
+      const centerX = bbox.x + bbox.width / 2;
+      const centerY = bbox.y + bbox.height / 2;
 
-fetch(apiUrl)
-  .then(response => response.json())
-  .then(data => {
-    console.log('Received data:', data);
-    paths.forEach(path => {
-      const dataName = path.getAttribute('data-name');
-      const matchingItem = data.find(item => item.statename === dataName);
+      // Adjust pin positions based on state name
+      let pinOffsetX = 0;
+      let pinOffsetY = 0;
 
-      if (matchingItem) {
-        const fillColor = `red`;
-        path.style.fill = fillColor;
+      if (dataName === 'Hawaii') {
+        // Custom positioning for Hawaii
+        pinOffsetX = 130;  // Adjust X position
+        pinOffsetY = 50; // Adjust Y position
       }
-    });
-  })
-  .catch(error => {
-    console.error('Error:', error);
-  });
 
+      for (let i = 0; i < frequency; i++) {
+        const pin = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+        pin.setAttribute('href', customIconUrl);
+        pin.setAttribute('width', '24');
+        pin.setAttribute('height', '24');
+
+        const offsetX = i * 30;
+        pin.setAttribute('x', centerX - 12 + offsetX + pinOffsetX);
+        pin.setAttribute('y', centerY - 24 + pinOffsetY);
+
+        const svgContainer = path.closest('svg');
+        svgContainer.appendChild(pin);
+      }
+
+      // Add event listeners for hover effects (tooltips)
+      path.addEventListener('mouseenter', () => {
+        showTooltip(dataName, frequency, centerX, centerY); // Pass frequency to showTooltip
+      });
+
+      path.addEventListener('mouseleave', () => {
+        hideTooltip();
+      });
+    }
+  });
+}
+
+function showTooltip(dataName, frequency, x, y) {
+  const tooltip = document.getElementById('tooltip');
+  tooltip.textContent = `${dataName} has ${frequency} agents`; 
+  tooltip.style.left = `${x}px`;
+  tooltip.style.top = `${y}px`;
+  tooltip.style.display = 'block';
+}
+
+  function hideTooltip() {
+    const tooltip = document.getElementById('tooltip');
+    tooltip.style.display = 'none';
+  }
+  
+  fetch(apiUrl)
+    .then(response => response.json())
+    .then(data => {
+      console.log('Received data:', data);
+      createPins(data);
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
   </script>
+  
+  <!-- Add a tooltip container (hidden by default) -->
+  <div id="tooltip" style="position: absolute; display: none; background-color: rgba(0, 0, 0, 0.8); color: #fff; padding: 8px; border-radius: 4px; font-size: 12px;"></div>
+  
 </body>
 </html>
