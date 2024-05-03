@@ -10,7 +10,11 @@
   <div id="stateFrequencies"></div>
   
   <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-
+<!--
+************* Copyright (c) 2017 Pareto Softare, LLC DBA Simplemaps.com *******************		
+************* Free for Commercial Use, full terms at  http://simplemaps.com/resources/svg-license ************
+************* Attribution is appreciated! http://simplemaps.com ***************************
+-->
 
 <svg
    xmlns:dc="http://purl.org/dc/elements/1.1/"
@@ -452,11 +456,7 @@
   const paths = document.querySelectorAll('path');
   
   const customIconUrl = 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/Map_pin_icon.svg/352px-Map_pin_icon.svg.png';
-  
-  // Function to create pins based on state frequencies
-  // Function to create pins based on state frequencies
-// Function to create pins based on state frequencies
-function createPins(data) {
+  function createPins(data) {
   paths.forEach(path => {
     const dataName = path.getAttribute('data-name');
     const matchingItem = data.find(item => item.statename === dataName);
@@ -467,13 +467,11 @@ function createPins(data) {
       const centerX = bbox.x + bbox.width / 2;
       const centerY = bbox.y + bbox.height / 2;
 
-      // Adjust pin positions based on state name
       let pinOffsetX = 0;
       let pinOffsetY = 0;
 
       if (dataName === 'Hawaii') {
-        // Custom positioning for Hawaii
-        pinOffsetX = 130;  // Adjust X position
+        pinOffsetX = 130; // Adjust X position
         pinOffsetY = 50; // Adjust Y position
       }
 
@@ -491,9 +489,8 @@ function createPins(data) {
         svgContainer.appendChild(pin);
       }
 
-      // Add event listeners for hover effects (tooltips)
       path.addEventListener('mouseenter', () => {
-        showTooltip(dataName, frequency, centerX, centerY); // Pass frequency to showTooltip
+        showTooltip(dataName, frequency, centerX, centerY); 
       });
 
       path.addEventListener('mouseleave', () => {
@@ -504,18 +501,31 @@ function createPins(data) {
 }
 
 function showTooltip(dataName, frequency, x, y) {
-  const tooltip = document.getElementById('tooltip');
-  tooltip.textContent = `${dataName} has ${frequency} agents`; 
+  const tooltip = document.createElement('div');
+  tooltip.textContent = `${dataName} has ${frequency} agents`;
+  tooltip.style.position = 'absolute';
   tooltip.style.left = `${x}px`;
   tooltip.style.top = `${y}px`;
-  tooltip.style.display = 'block';
+  tooltip.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+  tooltip.style.color = 'white';
+  tooltip.style.padding = '5px';
+  tooltip.style.borderRadius = '5px';
+  tooltip.style.zIndex = '1000'; 
+  document.body.appendChild(tooltip);
+
+
+  setTimeout(() => {
+    tooltip.remove();
+  }, 1000);
 }
 
-  function hideTooltip() {
-    const tooltip = document.getElementById('tooltip');
-    tooltip.style.display = 'none';
-  }
-  
+function hideTooltip() {
+  const tooltips = document.querySelectorAll('.tooltip');
+  tooltips.forEach(tooltip => tooltip.remove());
+}
+
+//call the fetch part
+function fetchDataAndUpdate() {
   fetch(apiUrl)
     .then(response => response.json())
     .then(data => {
@@ -523,11 +533,14 @@ function showTooltip(dataName, frequency, x, y) {
       createPins(data);
     })
     .catch(error => {
-      console.error('Error:', error);
+      console.error('Error fetching data:', error);
     });
+}
+// for now 5 seconds later adjust it as per sir's requirement
+fetchDataAndUpdate();
+setInterval(fetchDataAndUpdate, 5000);
   </script>
-  
-  <!-- Add a tooltip container (hidden by default) -->
+    
   <div id="tooltip" style="position: absolute; display: none; background-color: rgba(0, 0, 0, 0.8); color: #fff; padding: 8px; border-radius: 4px; font-size: 12px;"></div>
   
 </body>
